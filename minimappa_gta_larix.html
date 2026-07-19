@@ -9,12 +9,10 @@
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIINfQ3ynf3gj2Zl3YCdBqE3w9S8VnK7Z8A="
     crossorigin=""
   />
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin="">
   </script>
 
@@ -67,6 +65,32 @@
       filter: grayscale(.78) sepia(.12) contrast(1.28) brightness(1.08);
     }
 
+    /* Fallback essenziale: evita tile impilate se il CSS CDN tarda o viene bloccato */
+    .leaflet-container {
+      position: relative;
+      overflow: hidden;
+      outline: 0;
+    }
+    .leaflet-pane,
+    .leaflet-tile,
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow,
+    .leaflet-tile-container,
+    .leaflet-pane > svg,
+    .leaflet-pane > canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+    .leaflet-tile {
+      width: 256px;
+      height: 256px;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .leaflet-zoom-animated {
+      transform-origin: 0 0;
+    }
     .leaflet-control-container { display: none !important; }
 
     #vignette {
@@ -263,7 +287,7 @@
       "use strict";
 
       const DEFAULT = { lat: 41.9028, lng: 12.4964 };
-      const ZOOM = 17;
+      const ZOOM = 16;
       const MIN_MOVE_METERS = 1.5;
       const ADDRESS_UPDATE_MS = 9000;
 
@@ -291,14 +315,32 @@
         markerZoomAnimation: false
       }).setView([DEFAULT.lat, DEFAULT.lng], ZOOM);
 
-      L.tileLayer(
+      const tiles = L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
         {
           maxZoom: 20,
           subdomains: "abcd",
-          crossOrigin: true
+          crossOrigin: true,
+          updateWhenIdle: false,
+          keepBuffer: 3
         }
       ).addTo(map);
+
+      function forceMapRedraw() {
+        map.invalidateSize({ pan: false, debounceMoveend: true });
+      }
+
+      tiles.on("load", forceMapRedraw);
+      window.addEventListener("resize", () => {
+        clearTimeout(window.__mapResizeTimer);
+        window.__mapResizeTimer = setTimeout(forceMapRedraw, 120);
+      });
+
+      if ("ResizeObserver" in window) {
+        const resizeObserver = new ResizeObserver(forceMapRedraw);
+        resizeObserver.observe(document.getElementById("radar-shell"));
+        resizeObserver.observe(document.getElementById("map"));
+      }
 
       let lastPosition = null;
       let lastHeading = 0;
@@ -444,8 +486,14 @@
       });
 
       window.addEventListener("load", () => {
-        setTimeout(() => map.invalidateSize(), 250);
+        [80, 250, 700, 1500].forEach(ms => setTimeout(forceMapRedraw, ms));
         startTracking();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          [50, 250, 700].forEach(ms => setTimeout(forceMapRedraw, ms));
+        }
       });
     })();
   </script>
