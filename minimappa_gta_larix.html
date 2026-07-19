@@ -64,13 +64,13 @@
     #map {
       position: absolute;
       inset: -18px;
-      background: #20242b;
+      background: #b9bec2;
       filter:
-        grayscale(.42)
-        saturate(.72)
-        contrast(1.55)
-        brightness(.78)
-        sepia(.10);
+        grayscale(.72)
+        sepia(.10)
+        saturate(.80)
+        contrast(1.30)
+        brightness(.93);
     }
 
     .leaflet-container {
@@ -107,7 +107,7 @@
       inset: 0;
       z-index: 350;
       pointer-events: none;
-      opacity: .15;
+      opacity: .08;
       background-image:
         linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px);
@@ -122,10 +122,10 @@
       pointer-events: none;
       border-radius: 50%;
       box-shadow:
-        inset 0 0 28px rgba(0,0,0,.48),
-        inset 0 0 72px rgba(0,0,0,.88);
+        inset 0 0 20px rgba(0,0,0,.22),
+        inset 0 0 48px rgba(0,0,0,.48);
       background:
-        radial-gradient(circle at 50% 42%, transparent 0 45%, rgba(0,0,0,.12) 70%, rgba(0,0,0,.35) 100%);
+        radial-gradient(circle at 50% 44%, transparent 0 54%, rgba(0,0,0,.08) 74%, rgba(0,0,0,.22) 100%);
     }
 
     #crosshair {
@@ -359,7 +359,7 @@
       "use strict";
 
       const DEFAULT = { lat: 41.9028, lng: 12.4964 };
-      const ZOOM = 16;
+      const ZOOM = 15;
       const MIN_MOVE_METERS = 1.5;
       const ADDRESS_UPDATE_MS = 9000;
 
@@ -388,7 +388,7 @@
       }).setView([DEFAULT.lat, DEFAULT.lng], ZOOM);
 
       const tiles = L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
         {
           maxZoom: 20,
           subdomains: "abcd",
